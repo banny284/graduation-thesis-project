@@ -5,7 +5,9 @@ package websocketcontroller
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/url"
+	"price-feed-oracle/provider/telemetry"
 	"price-feed-oracle/types"
 	"sync"
 	"time"
@@ -119,6 +121,16 @@ func pingLoop(ctx context.Context, pingDuration time.Duration, ping func() error
 	}
 }
 
+func (wsc *WebsocketController) interateRetryCounter() time.Duration {
+	if wsc.reconnectCounter < 25 {
+		wsc.reconnectCounter++
+	}
+
+	multiplier := math.Pow(float64(wsc.reconnectCounter), 2)
+
+	return time.Duration(multiplier) * startingReconnectDuration
+}
+
 // 				//
 // client side	//
 // 				//
@@ -149,5 +161,39 @@ func (wsc *WebsocketController) pingHandler(appData string) error {
 	if err := wsc.client.WriteMessage(websocket.PongMessage, []byte("pong")); err != nil {
 		wsc.logger.Error().Err(err).Msg("error sending pong")
 	}
+	return nil
+}
+
+// subscribe to websocket
+
+func (wsc *WebsocketController) SendJSON(msg interface{}) error {
+	wsc.mtx.Lock()
+	defer wsc.mtx.Unlock()
+
+	if wsc.client == nil {
+		return fmt.Errorf("unable to send JSON on a closed connection")
+	}
+
+	wsc.logger.Debug().
+		Interface("msg", msg).
+		Msg("sending websocket message")
+
+	if err := wsc.client.WriteJSON(msg); err != nil {
+		return fmt.Errorf(types.ErrWebSocketSend.Error(), wsc.providerName, err)
+	}
+	return nil
+}
+
+func (wsc *WebsocketController) subscribe(
+	msgs []interface{},
+) error {
+	telemetry.TelemetryWebsocketSubscribeCurrencyPairs(telemetry.Name(wsc.providerName), len(wsc.pair))
+
+	for _, msg := range msgs {
+		if err := wsc.SendJSON(msg); err != nil {
+			return fmt.Errorf(types.ErrWebSocketSend.Error(), wsc.providerName, err)
+		}
+	}
+
 	return nil
 }
