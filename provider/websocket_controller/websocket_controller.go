@@ -39,7 +39,7 @@ type (
 		websocketCancelFunc context.CancelFunc
 		providerName        Name
 		websocketUrl        url.URL
-		pair                []types.CurrencyPair
+		pairs               []types.CurrencyPair
 		messageHandler      MessageHandler
 		subscribeHandler    SubscribeHandler
 
@@ -63,7 +63,7 @@ func NewWebsocketController(
 	parentCtx context.Context,
 	providerName Name,
 	websocketUrl url.URL,
-	pair []types.CurrencyPair,
+	pairs []types.CurrencyPair,
 	messageHandler MessageHandler,
 	subscribeMessage SubscribeHandler,
 	pingDuration time.Duration,
@@ -75,7 +75,7 @@ func NewWebsocketController(
 		parentCtx:        parentCtx,
 		providerName:     providerName,
 		websocketUrl:     websocketUrl,
-		pair:             pair,
+		pairs:            pairs,
 		messageHandler:   messageHandler,
 		subscribeHandler: subscribeMessage,
 		pingDuration:     pingDuration,
@@ -100,28 +100,29 @@ func (wsc *WebsocketController) ping() error {
 	return nil
 }
 
-func pingLoop(ctx context.Context, pingDuration time.Duration, ping func() error) {
+func (wsc *WebsocketController) pingLoop() {
 
-	if pingDuration == disablePingDuration {
-		return
+	if wsc.pingDuration == disablePingDuration {
+		return // disable ping loop if disabledPingDuration
 	}
-
-	ticker := time.NewTicker(pingDuration)
-	defer ticker.Stop()
+	pingTicker := time.NewTicker(wsc.pingDuration)
+	defer pingTicker.Stop()
 
 	for {
-		select {
-		case <-ctx.Done():
+		err := wsc.ping()
+		if err != nil {
 			return
-		case <-ticker.C:
-			if err := ping(); err != nil {
-				return
-			}
+		}
+		select {
+		case <-wsc.websocketCtx.Done():
+			return
+		case <-pingTicker.C:
+			continue
 		}
 	}
 }
 
-func (wsc *WebsocketController) interateRetryCounter() time.Duration {
+func (wsc *WebsocketController) iterateRetryCounter() time.Duration {
 	if wsc.reconnectCounter < 25 {
 		wsc.reconnectCounter++
 	}
@@ -136,6 +137,34 @@ func (wsc *WebsocketController) interateRetryCounter() time.Duration {
 // 				//
 
 // connect to websocket
+func (wsc *WebsocketController) Start() {
+	connectTicker := time.NewTicker(time.Millisecond)
+	defer connectTicker.Stop()
+
+	for {
+		if err := wsc.connect(); err != nil {
+			wsc.logger.Err(err).Send()
+			select {
+			case <-wsc.parentCtx.Done():
+				return
+			case <-connectTicker.C:
+				connectTicker.Reset(wsc.iterateRetryCounter())
+				continue
+			}
+		}
+
+		go wsc.readWebSocket()
+		go wsc.pingLoop()
+
+		if err := wsc.subscribe(wsc.subscribeHandler(wsc.pairs...)); err != nil {
+			wsc.logger.Err(err).Send()
+			wsc.close()
+			continue
+		}
+		return
+	}
+}
+
 func (wsc *WebsocketController) connect() error {
 	wsc.mtx.Lock()
 	defer wsc.mtx.Unlock()
@@ -186,7 +215,7 @@ func (wsc *WebsocketController) SendJSON(msg interface{}) error {
 func (wsc *WebsocketController) subscribe(
 	msgs []interface{},
 ) error {
-	telemetry.TelemetryWebsocketSubscribeCurrencyPairs(telemetry.Name(wsc.providerName), len(wsc.pair))
+	telemetry.TelemetryWebsocketSubscribeCurrencyPairs(telemetry.Name(wsc.providerName), len(wsc.pairs))
 
 	for _, msg := range msgs {
 		if err := wsc.SendJSON(msg); err != nil {
@@ -203,4 +232,61 @@ func (wsc *WebsocketController) AddSubscriptionMsgs(msgs []interface{}) error {
 
 func (wsc *WebsocketController) AddPairs(pairs []types.CurrencyPair) error {
 	return wsc.subscribe(wsc.subscribeHandler(pairs...))
+}
+
+// read socket message
+
+// close sends a close message to the websocket and sets the client to nil
+func (wsc *WebsocketController) close() {
+	wsc.mtx.Lock()
+	defer wsc.mtx.Unlock()
+
+	wsc.logger.Debug().Msg("closing websocket")
+	wsc.websocketCancelFunc()
+	if err := wsc.client.Close(); err != nil {
+		wsc.logger.Err(fmt.Errorf(types.ErrWebSocketClose.Error(), wsc.providerName, err)).Send()
+	}
+	wsc.client = nil
+}
+
+func (wsc *WebsocketController) readSuccess(messageType int, bz []byte) {
+	if len(bz) == 0 {
+		return
+	}
+	// mexc and bitget do not send a valid pong response code so check for it here
+	if string(bz) == "pong" {
+		return
+	}
+	wsc.messageHandler(messageType, bz)
+}
+
+// reconnect closes the current websocket and starts a new connection process
+func (wsc *WebsocketController) reconnect() {
+	wsc.close()
+	go wsc.Start()
+	telemetry.TelemetryWebsocketReconnect(telemetry.Name(wsc.providerName))
+}
+
+func (wsc *WebsocketController) readWebSocket() {
+	reconnectTicker := time.NewTicker(defaultMaxConnectionTime)
+	defer reconnectTicker.Stop()
+
+	for {
+		select {
+		case <-wsc.websocketCtx.Done():
+			wsc.close()
+			return
+		case <-time.After(defaultReadNewWsMessage):
+			messageType, bz, err := wsc.client.ReadMessage()
+			if err != nil {
+				wsc.logger.Err(fmt.Errorf(types.ErrWebSocketRead.Error(), wsc.providerName, err)).Send()
+				wsc.reconnect()
+				return
+			}
+			wsc.readSuccess(messageType, bz)
+		case <-reconnectTicker.C:
+			wsc.reconnect()
+			return
+		}
+	}
 }
