@@ -1,7 +1,10 @@
 package websocketcontroller
 
+// banny 284
+
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"price-feed-oracle/types"
 	"sync"
@@ -49,6 +52,10 @@ type (
 	}
 )
 
+// 				//
+// server side 	//
+// 				//
+
 // create new websocket controller
 func NewWebsocketController(
 	parentCtx context.Context,
@@ -76,4 +83,71 @@ func NewWebsocketController(
 	}
 }
 
-// create
+func (wsc *WebsocketController) ping() error {
+	wsc.mtx.Lock()
+	defer wsc.mtx.Unlock()
+
+	if wsc.client == nil {
+		return fmt.Errorf("don't have a websocket connection")
+	}
+
+	if err := wsc.client.WriteMessage(int(wsc.pingMessageType), []byte(wsc.pingMessage)); err != nil {
+		wsc.logger.Err(fmt.Errorf(types.ErrWebSocketSend.Error(), wsc.providerName, err)).Send()
+	}
+
+	return nil
+}
+
+func pingLoop(ctx context.Context, pingDuration time.Duration, ping func() error) {
+
+	if pingDuration == disablePingDuration {
+		return
+	}
+
+	ticker := time.NewTicker(pingDuration)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := ping(); err != nil {
+				return
+			}
+		}
+	}
+}
+
+// 				//
+// client side	//
+// 				//
+
+// connect to websocket
+func (wsc *WebsocketController) connect() error {
+	wsc.mtx.Lock()
+	defer wsc.mtx.Unlock()
+
+	wsc.logger.Debug().Msg("Connecting to websocket")
+	conn, reps, err := websocket.DefaultDialer.Dial(wsc.websocketUrl.String(), nil)
+	if err != nil {
+		return fmt.Errorf(types.ErrWebSocketDial.Error(), wsc.providerName, err)
+	}
+
+	defer reps.Body.Close()
+
+	wsc.client = conn
+	wsc.websocketCtx, wsc.websocketCancelFunc = context.WithCancel(wsc.parentCtx)
+	wsc.client.SetPingHandler(wsc.pingHandler)
+	wsc.reconnectCounter = 0
+
+	return nil
+}
+
+// when sv sends a ping then client send a pong back
+func (wsc *WebsocketController) pingHandler(appData string) error {
+	if err := wsc.client.WriteMessage(websocket.PongMessage, []byte("pong")); err != nil {
+		wsc.logger.Error().Err(err).Msg("error sending pong")
+	}
+	return nil
+}
