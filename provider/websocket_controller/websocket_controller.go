@@ -28,7 +28,7 @@ const (
 type (
 	MessageHandler func(int, []byte)
 
-	SubscribeMessage func(...types.CurrencyPair) []interface{}
+	SubscribeHandler func(...types.CurrencyPair) []interface{}
 
 	Name string
 
@@ -41,7 +41,7 @@ type (
 		websocketUrl        url.URL
 		pair                []types.CurrencyPair
 		messageHandler      MessageHandler
-		subscribeMessage    SubscribeMessage
+		subscribeHandler    SubscribeHandler
 
 		pingDuration    time.Duration
 		pingMessage     string
@@ -65,7 +65,7 @@ func NewWebsocketController(
 	websocketUrl url.URL,
 	pair []types.CurrencyPair,
 	messageHandler MessageHandler,
-	subscribeMessage SubscribeMessage,
+	subscribeMessage SubscribeHandler,
 	pingDuration time.Duration,
 	pingMessage string,
 	pingMessageType uint,
@@ -77,7 +77,7 @@ func NewWebsocketController(
 		websocketUrl:     websocketUrl,
 		pair:             pair,
 		messageHandler:   messageHandler,
-		subscribeMessage: subscribeMessage,
+		subscribeHandler: subscribeMessage,
 		pingDuration:     pingDuration,
 		pingMessage:      pingMessage,
 		pingMessageType:  pingMessageType,
@@ -165,7 +165,6 @@ func (wsc *WebsocketController) pingHandler(appData string) error {
 }
 
 // subscribe to websocket
-
 func (wsc *WebsocketController) SendJSON(msg interface{}) error {
 	wsc.mtx.Lock()
 	defer wsc.mtx.Unlock()
@@ -196,4 +195,12 @@ func (wsc *WebsocketController) subscribe(
 	}
 
 	return nil
+}
+
+func (wsc *WebsocketController) AddSubscriptionMsgs(msgs []interface{}) error {
+	return wsc.subscribe(msgs)
+}
+
+func (wsc *WebsocketController) AddPairs(pairs []types.CurrencyPair) error {
+	return wsc.subscribe(wsc.subscribeHandler(pairs...))
 }
