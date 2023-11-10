@@ -100,7 +100,7 @@ func (p *provider) Init(
 ) {
 	p.ctx = ctx
 	p.endpoints = endpoints
-
+	p.endpoints.SetDefaultEnpoint()
 	p.logger = logger.With().Str("provider", string(p.endpoints.Name)).Logger()
 
 	p.http = newDefaultHttpClient()
