@@ -265,8 +265,17 @@ func (e *Endpoint) SetDefaultEnpoint() {
 	var defaults Endpoint
 
 	switch e.Name {
+
 	case ProviderBinance:
 		defaults = binanceDefaultEndpoints
+
+	case ProviderOkx:
+		defaults = okxDefaultEndpoints
+
+	case ProviderCoinbase:
+		defaults = coinbaseDefaultEndpoints
+	case ProviderUniswapV3:
+		defaults = uniswapv3DefaultEndpoints
 
 	default:
 		return
