@@ -1,0 +1,46 @@
+package derivative
+
+import (
+	"fmt"
+	"time"
+
+	"price-feed-oracle/history"
+	"price-feed-oracle/types"
+
+	"github.com/rs/zerolog"
+)
+
+const (
+	DerivativeTwap   = "twap"
+	DerivativeStride = "stride"
+)
+
+type (
+	Derivative interface {
+		GetPrices(string) (map[string]types.TickerPrice, error)
+	}
+
+	derivative struct {
+		pairs   []types.CurrencyPair
+		history *history.PriceHistory
+		logger  zerolog.Logger
+		periods map[string]time.Duration
+	}
+)
+
+func NewDerivative(
+	name string,
+	logger zerolog.Logger,
+	history *history.PriceHistory,
+	pairs []types.CurrencyPair,
+	periods map[string]time.Duration,
+) (Derivative, error) {
+	derivativeLogger := logger.With().Str("derivative", name).Logger()
+	switch name {
+	case DerivativeStride:
+		return NewTwapDerivative(history, derivativeLogger, pairs, periods)
+	case DerivativeTwap:
+		return NewTwapDerivative(history, derivativeLogger, pairs, periods)
+	}
+	return nil, fmt.Errorf("unsupported provider: %s", name)
+}
