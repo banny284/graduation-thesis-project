@@ -503,3 +503,7 @@ func (p *provider) getContractAddress(pair types.CurrencyPair) (string, error) {
 
 	return "", err
 }
+
+func (n Name) String() string {
+	return string(n)
+}
