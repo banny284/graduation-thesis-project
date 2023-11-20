@@ -6,11 +6,13 @@
   "repository": "git@github.com:fuji-money/oracle.git",
   "license": "MIT",
   "scripts": {
-    "start": "node build/index.js",
+    "start": "node index.js",
     "predev": "yarn swagger",
     "prebuild": "yarn swagger",
     "build": "tsc",
     "dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec\"",
+    "start:dev": "concurrently nodemon index.js",
+    "port": "yargs --port",
     "test": "jest",
     "swagger": "tsoa spec",
     "lint": "npx eslint --ignore-path .eslintignore --ext .ts .",
@@ -46,12 +48,16 @@
     "axios-request-throttle": "^1.0.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
+    "dotenv": "^16.3.1",
     "ecpair": "^2.0.1",
     "express": "^4.18.1",
+    "keccak256": "^1.0.6",
     "morgan": "^1.10.0",
+    "secp256k1": "^5.0.0",
     "swagger-ui-express": "^4.4.0",
     "tiny-secp256k1": "^2.2.1",
-    "tsoa": "^4.1.0"
+    "tsoa": "^4.1.0",
+    "yargs": "^17.7.2"
   },
   "nodemonConfig": {
     "watch": [

@@ -4,6 +4,8 @@ import express, { Application } from 'express';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+dotenv.config();
 
 import routerFactory from './routes';
 import { Ticker } from './domain/ticker';
@@ -18,9 +20,7 @@ import PingController from './controllers/ping';
 
 // ENV vars
 const PORT = process.env.PORT || 8000;
-const PRIVATE_KEY =
-  '5a84c445ecc36a8b0878e9516245633ffd630353838034cfe263a9595d49d540';
-console.log('PRIVATE_KEY', PRIVATE_KEY);
+const PRIVATE_KEY = process.env.PRIVATE_KEY || '';
 const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
 // oracle price sources (median will be applied)
@@ -74,8 +74,11 @@ app.use(
   })
 );
 
-const server = app.listen(PORT, () => {
-  console.log('Server is running on port', PORT);
+const args = process.argv.slice(2);
+const port = args[0] || process.env.PORT || 8000;
+
+const server = app.listen(port, () => {
+  console.log('Server is running on port', port);
 });
 
 function gracefulshutdown() {

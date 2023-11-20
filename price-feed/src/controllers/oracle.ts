@@ -5,6 +5,13 @@ import { ECPairInterface } from 'ecpair';
 import { uint64LE } from '../utils/bufferutils';
 import { PriceSource } from '../domain/price-source';
 import { Ticker } from '../domain/ticker';
+import { filterMessageTo32 } from '../utils/bufferutils';
+import * as fs from 'fs';
+import secp256k1 from 'secp256k1';
+import { randomBytes } from 'crypto';
+import keccak256 from 'keccak256';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export type OracleAttestation = {
   timestamp: string;
@@ -13,6 +20,7 @@ export type OracleAttestation = {
     signature: string;
     message: string;
     messageHash: string;
+    validatorAddress?: string;
   };
 };
 
@@ -75,21 +83,39 @@ export default class OracleController {
         ...priceLE64,
         ...iso4217currencyCode,
       ]);
-      const hash = crypto.createHash('sha256').update(message).digest();
+
+      const hash = crypto
+        .createHash('sha256')
+        .update(filterMessageTo32(message))
+        .digest();
       if (!this.keyPair.privateKey) throw new Error('No private key found');
-      const signature = Buffer.from(
-        ecc.signSchnorr(hash, this.keyPair.privateKey, Buffer.alloc(32))
+      const sig = secp256k1.ecdsaSign(
+        filterMessageTo32(message),
+        this.keyPair.privateKey
       );
+
+      // get wallet address from private key
+      const privateKey = Buffer.from(process.env.PRIVATE_KEY!, 'hex');
+      const publicKey = secp256k1.publicKeyCreate(privateKey);
+
+      // decompress public key and use keccak256 to get the address
+      const decompressedKey = secp256k1.publicKeyConvert(publicKey, false);
+      const address = keccak256(Buffer.from(decompressedKey.slice(1)))
+        .slice(-20)
+        .toString('hex');
+
       return {
         timestamp: timestampToUse!.toString(),
         lastPrice: lastPriceToUse!.toString(),
         attestation: {
-          signature: signature.toString('hex'),
+          signature: Buffer.from(sig.signature).toString('hex'),
           message: message.toString('hex'),
           messageHash: hash.toString('hex'),
+          validatorAddress: '0x' + address,
         },
       };
     } catch (e) {
+      console.error(e);
       throw new Error('Bitfinex: An error occurred while signing the message');
     }
   }
