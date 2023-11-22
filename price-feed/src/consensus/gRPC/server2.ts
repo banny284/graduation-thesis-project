@@ -2,6 +2,7 @@ import {
   Server,
   ServerCredentials,
   loadPackageDefinition,
+  credentials,
 } from '@grpc/grpc-js';
 import path from 'path';
 import { loadSync } from '@grpc/proto-loader';
@@ -76,14 +77,25 @@ async function sayHello(call: any, callback: any) {
   callback(null, { message: 'Hello ' + call.request.name });
 }
 
-// SayHelloStreamReply
-// https://grpc.io/docs/languages/node/basics/#server-side
+// call other server
 
 function main() {
   var server = new Server();
   server.addService(helloWorldProto.Greeter.service, { sayHello: sayHello });
   const bindAddress = '0.0.0.0';
-  const port = 50051;
+  const port = 50052;
+
+  // call other server port 50052
+  var client = new helloWorldProto.Greeter(
+    'localhost:50051',
+    credentials.createInsecure()
+  );
+
+  function callSayHello() {
+    client.sayHello({ name: 'server2' }, function (err: any, response: any) {
+      console.log('Greeting:', response.message);
+    });
+  }
 
   server.bindAsync(
     `${bindAddress}:${port}`,
@@ -91,6 +103,8 @@ function main() {
     () => {
       server.start();
       console.log(`gRPC server running on http://${bindAddress}:${port}`);
+      callSayHello(); // Call sayHello immediately
+      setInterval(callSayHello, 2000); // Call sayHello repeatedly every 2 seconds
     }
   );
 }

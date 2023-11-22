@@ -27,6 +27,12 @@ service Greeter {
   rpc SayHello (HelloRequest) returns (HelloReply) {}
 
   rpc SayHelloStreamReply (HelloRequest) returns (stream HelloReply) {}
+  
+  // Propose a value for consensus.
+  rpc Propose (ProposeRequest) returns (ProposeReply) {}
+
+  // Vote on a proposed value.
+  rpc Vote (VoteRequest) returns (VoteReply) {}
 }
 
 // The request message containing the user's name.
@@ -37,4 +43,27 @@ message HelloRequest {
 // The response message containing the greetings
 message HelloReply {
   string message = 1;
+}
+
+// The request message for proposing a value.
+message ProposeRequest {
+  string value = 1;
+}
+
+// The response message for a propose request.
+message ProposeReply {
+  bool success = 1;
+  string message = 2;
+}
+
+// The request message for voting on a proposed value.
+message VoteRequest {
+  string proposalId = 1;
+  bool approve = 2;
+}
+
+// The response message for a vote request.
+message VoteReply {
+  bool success = 1;
+  string message = 2;
 }
