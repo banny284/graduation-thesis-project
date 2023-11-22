@@ -9,7 +9,7 @@ import {
 } from '@grpc/grpc-js';
 import { loadSync } from '@grpc/proto-loader';
 
-const protoPath = path.join(__dirname, '/proto/helloworld.proto');
+const protoPath = path.join(__dirname, '/proto/bftconsensus.proto');
 
 var packageDefinition = loadSync(protoPath, {
   keepCase: true,
@@ -19,7 +19,8 @@ var packageDefinition = loadSync(protoPath, {
   oneofs: true,
 });
 
-var hello_proto: any = loadPackageDefinition(packageDefinition).helloworld;
+var bftconsensusProto: any =
+  loadPackageDefinition(packageDefinition).bftconsensus;
 
 function main() {
   var argv = parseArgs(process.argv.slice(2), {
@@ -33,7 +34,10 @@ function main() {
     target = 'localhost:50051';
   }
 
-  var client = new hello_proto.Greeter(target, credentials.createInsecure());
+  var client = new bftconsensusProto.Greeter(
+    target,
+    credentials.createInsecure()
+  );
 
   var user;
   if (argv._.length > 0) {
@@ -41,9 +45,18 @@ function main() {
   } else {
     user = 'world';
   }
-  client.sayHello({ name: user }, function (err: any, response: any) {
-    console.log('Greeting:', response.message);
-  });
+  // client.sayHello({ name: user }, function (err: any, response: any) {
+  //   console.log('Greeting:', response.message);
+  // });
+  client.vote(
+    {
+      proposalId: 1,
+      approve: true,
+    },
+    function (err: any, response: any) {
+      console.log('Vote result:', response.message);
+    }
+  );
 }
 
 main();

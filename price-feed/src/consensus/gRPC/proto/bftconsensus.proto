@@ -19,7 +19,7 @@ option java_package = "io.grpc.examples.helloworld";
 option java_outer_classname = "HelloWorldProto";
 option objc_class_prefix = "HLW";
 
-package helloworld;
+package bftconsensus;
 
 // The greeting service definition.
 service Greeter {
@@ -47,7 +47,9 @@ message HelloReply {
 
 // The request message for proposing a value.
 message ProposeRequest {
-  string value = 1;
+  string proposalId = 1;
+  string simbol = 2;
+  string value = 3;
 }
 
 // The response message for a propose request.

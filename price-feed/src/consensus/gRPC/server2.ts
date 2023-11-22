@@ -53,7 +53,7 @@ const oracleController = new OracleTestController(
   IS_DEVELOPMENT
 );
 
-const protoPath = path.join(__dirname, '/proto/helloworld.proto');
+const protoPath = path.join(__dirname, '/proto/bftconsensus.proto');
 const packageDefinition = loadSync(protoPath, {
   keepCase: true,
   longs: String,
@@ -62,8 +62,8 @@ const packageDefinition = loadSync(protoPath, {
   oneofs: true,
 });
 
-const helloWorldProto: any =
-  loadPackageDefinition(packageDefinition).helloworld;
+const bftconsensusProto: any =
+  loadPackageDefinition(packageDefinition).bftconsensus;
 
 async function sayHello(call: any, callback: any) {
   // const rest = await oracleController.getAttestationForTicker(
@@ -81,12 +81,12 @@ async function sayHello(call: any, callback: any) {
 
 function main() {
   var server = new Server();
-  server.addService(helloWorldProto.Greeter.service, { sayHello: sayHello });
+  server.addService(bftconsensusProto.Greeter.service, { sayHello: sayHello });
   const bindAddress = '0.0.0.0';
   const port = 50052;
 
   // call other server port 50052
-  var client = new helloWorldProto.Greeter(
+  var client = new bftconsensusProto.Greeter(
     'localhost:50051',
     credentials.createInsecure()
   );
