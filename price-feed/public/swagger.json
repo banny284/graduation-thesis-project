@@ -28,6 +28,9 @@
 				"properties": {
 					"attestation": {
 						"properties": {
+							"validatorAddress": {
+								"type": "string"
+							},
 							"messageHash": {
 								"type": "string"
 							},

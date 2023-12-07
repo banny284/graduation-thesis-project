@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 dotenv.config();
+import { PriceSubmiter } from './submiter';
 
 import routerFactory from './routes';
 import { Ticker } from './domain/ticker';
@@ -76,6 +77,11 @@ app.use(
 
 const args = process.argv.slice(2);
 const port = args[0] || process.env.PORT || 8000;
+
+// call price submiter at 1 minute interval
+setInterval(async () => {
+  await PriceSubmiter();
+}, 60000);
 
 const server = app.listen(port, () => {
   console.log('Server is running on port', port);

@@ -1,0 +1,268 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0xa6a2A911A7548f6ED3D64C967E3EE8e75Fd96ED3",
+    "txHash": "0x5f1b00182212fd7d2d756c7cff5de7bb733871c78d9a3d464949f5d82f71e1a4"
+  },
+  "proxies": [
+    {
+      "address": "0x3258FaB08260B52e55f9E64940bcB4eca4C9A328",
+      "txHash": "0x809d2b77725081c3cdbfe000e07f80c82aaabba4f53928b8191e7c69f9e89c05",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xbF26257C59E2c2b77181252Cf20a4C0869771D78",
+      "txHash": "0x52a6b6487e956952fd87ce62ed4970545d4ab86d1d9dd906b6369d13ec1be663",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3B3B4d45BC9e91567A11Df1E5b90a4521250C69d",
+      "txHash": "0xc0f83ca7714d9b0750b0616cc404de3317ee50420eda639a0b7c9d51296c3852",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "f6c62290bac0d3ae4848692bb48612732a4fe183f04d19e761814b7e1b13deff": {
+      "address": "0xF973160b2788BE39D36A0C6b3244998bB6511A2A",
+      "txHash": "0x2d543e2283a2ebf7b9b28248b920219a9336614b0b56775f6c201aa5c147c243",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "btc_usdt_price",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_mapping(t_uint256,t_struct(BTC_USDT_PRICE)578_storage)",
+            "contract": "PriceProvider",
+            "src": "contracts/ProviderPrice.sol:22"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)64_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)14_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_mapping(t_uint256,t_struct(BTC_USDT_PRICE)578_storage)": {
+            "label": "mapping(uint256 => struct PriceProvider.BTC_USDT_PRICE)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(BTC_USDT_PRICE)578_storage": {
+            "label": "struct PriceProvider.BTC_USDT_PRICE",
+            "members": [
+              {
+                "label": "price",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "eb47f76e5e486df5306c446bdcf3b3bde31ea42e73e63449cc62aab70407ebad": {
+      "address": "0xFf5320C759F6bafDc7A68db55879eF5fd710E4f1",
+      "txHash": "0xfde08e55de0373a68bc76ed29b9295e7da48a42575a14cb55c8a600d5894cd2e",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "btc_usdt_price",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_mapping(t_uint256,t_struct(BTC_USDT_PRICE)499_storage)",
+            "contract": "PriceProvider",
+            "src": "contracts/ProviderPrice.sol:21"
+          },
+          {
+            "label": "btc_usdt_price_now",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_struct(BTC_USDT_PRICE)499_storage",
+            "contract": "PriceProvider",
+            "src": "contracts/ProviderPrice.sol:23"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)64_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)14_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_mapping(t_uint256,t_struct(BTC_USDT_PRICE)499_storage)": {
+            "label": "mapping(uint256 => struct PriceProvider.BTC_USDT_PRICE)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(BTC_USDT_PRICE)499_storage": {
+            "label": "struct PriceProvider.BTC_USDT_PRICE",
+            "members": [
+              {
+                "label": "price",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
